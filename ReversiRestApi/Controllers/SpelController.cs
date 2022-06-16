@@ -164,7 +164,6 @@ namespace ReversiRestApi.Controllers
                 spel.DoeZet(spelInfo.RijZet, spelInfo.KolomZet);
                 if (spel.Afgelopen())
                 {
-                    Debug.WriteLine("het spel is afgelopen guys");
                     returnValue = "Done";            
                 }
                 
@@ -220,11 +219,12 @@ namespace ReversiRestApi.Controllers
         }
 
         [HttpDelete("Delete")]
-        public IActionResult DeleteSpel(string spelToken)
+        public IActionResult DeleteSpelFromSpelerToken(string spelerToken)
         {
             try
             {
-                iRepository.DeleteSpel(spelToken);
+                Spel spel = iRepository.GetSpellen().Where(spel => spel.Speler1Token == spelerToken || spel.Speler2Token == spelerToken).First();
+                iRepository.DeleteSpel(spel.Token);
                 return Ok();
             }
             catch
