@@ -43,6 +43,10 @@ namespace ReversiRestApi.Controllers
             try
             {
                 Spel spel = iRepository.GetSpel(spelToken);
+                if(spel.ID == 0)
+                {
+                    return NotFound();
+                } 
                 string resultaat = new SpelTbvJson(spel).Bord;
 
                 return Ok(resultaat);
@@ -121,15 +125,31 @@ namespace ReversiRestApi.Controllers
             }
         }
 
-        [HttpGet("Speler2Token/{speler2Token}")]
-        public ActionResult<Spel> GetSpelVanSpeler2Token(string speler2Token)
+        //[HttpGet("Speler2Token/{speler2Token}")]
+        //public ActionResult<Spel> GetSpelVanSpeler2Token(string speler2Token)
+        //{
+        //    try
+        //    {
+        //        Spel spel = iRepository.GetSpellen().Where(spel => spel.Speler2Token == speler2Token).First();
+        //        SpelTbvJson resultaat = new SpelTbvJson(spel);
+
+        //        return Ok(JsonSerializer.Serialize(resultaat));
+        //    }
+        //    catch
+        //    {
+        //        return NotFound();
+        //    }
+        //}
+
+        [HttpGet("IsUserInGame/{spelerToken}")]
+        public ActionResult<Spel> GetSpelInGame(string spelerToken)
         {
             try
             {
-                Spel spel = iRepository.GetSpellen().Where(spel => spel.Speler2Token == speler2Token).First();
+                Spel spel = iRepository.GetSpellen().Where(spel => spel.Speler2Token == spelerToken || spel.Speler1Token == spelerToken).First();
                 SpelTbvJson resultaat = new SpelTbvJson(spel);
 
-                return Ok(JsonSerializer.Serialize(resultaat));
+                return Ok(resultaat);
             }
             catch
             {
@@ -158,19 +178,26 @@ namespace ReversiRestApi.Controllers
         public IActionResult PutZet([FromBody] SpelInfoTbvZet spelInfo)
         {
             try
-            {
+            {   
                 string returnValue = "";
-                Spel spel = iRepository.GetSpel(spelInfo.SpelToken);                
+                Spel spel = iRepository.GetSpel(spelInfo.SpelToken);
+                Debug.WriteLine("----------------------------------------------------");
+                string debugValue = "";
+                foreach(var item in spel.Bord)
+                {
+                    debugValue += item;
+                }
+                Debug.WriteLine(debugValue);
                 spel.DoeZet(spelInfo.RijZet, spelInfo.KolomZet);
                 if (spel.Afgelopen())
                 {
                     returnValue = "Done";            
                 }
-                
-                foreach (Kleur item in spel.Bord)
-                {
-                    Debug.WriteLine(item);
-                }
+
+                //foreach (kleur item in spel.bord)
+                //{
+                //    debug.writeline(item);
+                //}
 
                 iRepository.DeleteSpel(spelInfo.SpelToken);
                 iRepository.AddSpel(spel);
@@ -184,12 +211,41 @@ namespace ReversiRestApi.Controllers
         }
 
         [HttpPut("Opgeven")]
-        public IActionResult PutOpgeven(string spelToken, int rijZet, int kolomZet)
+        public IActionResult PutOpgeven([FromBody] SpelInfoTbvHttpClient spelInfo)
         {
             try
             {
-                Spel spel = iRepository.GetSpel(spelToken);
-                spel.DoeZet(rijZet, kolomZet);
+                //hier is spelInfo.Speler2Token de token van de speler die opgeeft
+                Spel spel = iRepository.GetSpel(spelInfo.SpelToken);
+                //als speler 1 opgeeft
+                if (spel.Speler1Token.Equals(spelInfo.Speler2Token))
+                {
+                    //als er ook al een speler 2 in zit
+                    if (!spel.Speler2Token.Equals(String.Empty))
+                    {
+                        //dan wordt speler 2 verplaats naar de plek van speler 1 en de plek voor de speler 2 token wordt leeggehaald
+                        spel.Speler1Token = spel.Speler2Token;
+                        spel.Speler2Token = String.Empty;
+                    }
+                    else
+                    {
+                        spel.Speler1Token = String.Empty;
+                    }
+                }
+                //als speler 2 opgeeft
+                else if (spel.Speler2Token.Equals(spelInfo.Speler2Token))
+                {
+                    //dan wordt de speler2token leeggehaald
+                    spel.Speler2Token = "";
+
+                }
+
+                iRepository.DeleteSpel(spel.Token);
+
+                if (!spel.Speler1Token.Equals(""))
+                {
+                    iRepository.AddSpel(spel);
+                }
 
                 return Ok();
             }
@@ -208,8 +264,6 @@ namespace ReversiRestApi.Controllers
                 Spel spel = iRepository.GetSpel(spelToken);
                 SpelTbvJson resultaat = new SpelTbvJson(spel);
 
-
-
                 return Ok(JsonSerializer.Serialize(resultaat.AandeBeurt));
             }
             catch
@@ -219,11 +273,15 @@ namespace ReversiRestApi.Controllers
         }
 
         [HttpDelete("Delete")]
-        public IActionResult DeleteSpelFromSpelerToken(string spelerToken)
+        public IActionResult DeleteSpelFromSpelerTokenIfExists(string spelerToken)
         {
             try
             {
                 Spel spel = iRepository.GetSpellen().Where(spel => spel.Speler1Token == spelerToken || spel.Speler2Token == spelerToken).First();
+                //if(spel != null)
+                //{
+                //    iRepository.DeleteSpel(spel.Token);
+                //}
                 iRepository.DeleteSpel(spel.Token);
                 return Ok();
             }
