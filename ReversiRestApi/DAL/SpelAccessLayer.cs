@@ -15,7 +15,7 @@ namespace ReversiRestApi.DAL
 {
     public class SpelAccessLayer : ISpelRepository
     {
-        public static string connectionString = "Server=(localdb)\\mssqllocaldb;Database=ReversiDbRestApi;Trusted_Connection=True;MultipleActiveResultSets=true";
+        public static string connectionString = "Server=(localdb)\\mssqllocaldb;Database=ReversiDbContext;Trusted_Connection=True;MultipleActiveResultSets=true";
         public void AddSpel(Spel spel)
         {
             SpelTbvJson serializableSpel = new SpelTbvJson(spel);
