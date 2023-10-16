@@ -35,8 +35,8 @@ namespace ReversiRestApi
                 options.AddPolicy(name: MyAllowSpecificOrigins,
                                   policy =>
                                   {
-                                      policy.WithOrigins("http://localhost:63342", 
-                                          "https://localhost:5002")
+                                      policy.WithOrigins( 
+                                          "http://localhost:5000")
                                       .AllowAnyHeader()
                                       .AllowAnyMethod();
                                   });
