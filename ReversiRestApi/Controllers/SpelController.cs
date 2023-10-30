@@ -10,6 +10,7 @@ using System.Web.Http.Cors;
 
 namespace ReversiRestApi.Controllers
 {
+    
 
     public class alleSpellen
     {
@@ -21,6 +22,7 @@ namespace ReversiRestApi.Controllers
     [ApiController]
     public class SpelController : ControllerBase
     {
+        string beginWaardeBord = "GeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenWitZwartGeenGeenGeenGeenGeenGeenZwartWitGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeenGeen";
         private readonly ISpelRepository iRepository;
 
         public SpelController(ISpelRepository repository)
@@ -217,35 +219,50 @@ namespace ReversiRestApi.Controllers
             {
                 //hier is spelInfo.Speler2Token de token van de speler die opgeeft
                 Spel spel = iRepository.GetSpel(spelInfo.SpelToken);
-                //als speler 1 opgeeft
-                if (spel.Speler1Token.Equals(spelInfo.Speler2Token))
+                string vergelijkingsStringVoorBord = "";
+                foreach (var item in spel.Bord)
                 {
-                    //als er ook al een speler 2 in zit
-                    if (!spel.Speler2Token.Equals(String.Empty))
+                    vergelijkingsStringVoorBord += item;
+                }
+
+                if (spel.Bord.Equals(beginWaardeBord))
+                {
+                    //als speler 1 opgeeft
+                    if (spel.Speler1Token.Equals(spelInfo.Speler2Token))
                     {
-                        //dan wordt speler 2 verplaats naar de plek van speler 1 en de plek voor de speler 2 token wordt leeggehaald
-                        spel.Speler1Token = spel.Speler2Token;
-                        spel.Speler2Token = String.Empty;
+                        //als er ook al een speler 2 in zit
+                        if (!spel.Speler2Token.Equals(String.Empty))
+                        {
+                            //dan wordt speler 2 verplaats naar de plek van speler 1 en de plek voor de speler 2 token wordt leeggehaald
+                            spel.Speler1Token = spel.Speler2Token;
+                            spel.Speler2Token = String.Empty;
+                        }
+                        else
+                        {
+                            spel.Speler1Token = String.Empty;
+                        }
                     }
-                    else
+                    //als speler 2 opgeeft
+                    else if (spel.Speler2Token.Equals(spelInfo.Speler2Token))
                     {
-                        spel.Speler1Token = String.Empty;
+                        //dan wordt de speler2token leeggehaald
+                        spel.Speler2Token = "";
+
+                    }
+
+                    iRepository.DeleteSpel(spel.Token);
+
+                    if (!spel.Speler1Token.Equals(""))
+                    {
+                        iRepository.AddSpel(spel);
                     }
                 }
-                //als speler 2 opgeeft
-                else if (spel.Speler2Token.Equals(spelInfo.Speler2Token))
+                else
                 {
-                    //dan wordt de speler2token leeggehaald
-                    spel.Speler2Token = "";
-
+                    iRepository.DeleteSpel(spel.Token);
+                    //iRepository.
                 }
-
-                iRepository.DeleteSpel(spel.Token);
-
-                if (!spel.Speler1Token.Equals(""))
-                {
-                    iRepository.AddSpel(spel);
-                }
+                
 
                 return Ok();
             }
@@ -255,6 +272,7 @@ namespace ReversiRestApi.Controllers
             }
         }
 
+        []
         [HttpGet("Beurt/{spelToken}")]
         public ActionResult<Kleur> GetBeurt(string spelToken)
         {

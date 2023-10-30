@@ -160,5 +160,28 @@ namespace ReversiRestApi.DAL
             }
         }
 
+        public void UpdateSpelerStats(string Token)
+        {
+            string query = "DELETE FROM Spel WHERE Token = @Token";
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+
+                    conn.Open();
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("Token", Token);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
+
     }
 }
