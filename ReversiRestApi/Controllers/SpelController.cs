@@ -272,7 +272,6 @@ namespace ReversiRestApi.Controllers
             }
         }
 
-        []
         [HttpGet("Beurt/{spelToken}")]
         public ActionResult<Kleur> GetBeurt(string spelToken)
         {
